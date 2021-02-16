@@ -1,0 +1,10 @@
+beautifulsoup4==4.9.3
+bs4==0.0.1
+feedparser==6.0.2
+gspread==3.6.0
+puzpy==0.2.5
+PyYAML==5.4.1
+requests==2.25.1
+titlecase==2.0.0         
+xword-dl>=2021.2.5
+yagmail==0.14.245
