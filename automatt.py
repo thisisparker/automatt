@@ -398,8 +398,8 @@ def main():
                 sh.worksheet('Other American').get_all_records(),
                 title='Other American-style crosswords:')
         html_doc += create_html_blocklist(
-                sh.worksheet('Other Cryptic').get_all_records(),
-                title='Other Cryptic crosswords:')
+                sh.worksheet('Other Cryptic/Variety').get_all_records(),
+                title='Other Cryptic/Variety crosswords:')
         html_doc += """
         </body>
     </html>"""
