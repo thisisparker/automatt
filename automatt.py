@@ -467,4 +467,8 @@ def main():
  
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        with open('automatt_error.txt', 'a') as f:
+            f.write(str(e))
