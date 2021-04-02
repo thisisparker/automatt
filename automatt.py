@@ -257,6 +257,7 @@ def format_string(template, record={}):
         '%pagetitle': record.get('pagetitle') or '%puztitle',
         '%author': record.get('author') or 'tktktk',
         '%puztitle': record.get('title') or 'tktktk',
+        '%blank': ''
         }
  
     for t in ['%d', '%-d', '%m', '%-m', '%y', '%Y', '%B']:
@@ -348,8 +349,7 @@ def check_and_handle(site):
                 <strong><a href="%link">%sitename</a>: %puztitle</strong> 
                 by %author.""")
 
-        if site.get('Italic'):
-            template += ' <em>' + site.get('Italic') + '</em>'
+        template += ' <em>' + (site.get('Italic') or 'tktktk') + '</em>'
 
         rec['template'] = template
 
