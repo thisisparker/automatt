@@ -338,7 +338,7 @@ def check_and_handle(site):
                     for b in ['by ', 'By ', 'BY ']):
                 rec['author'] = rec['author'][3:]
 
-        if rec['name'] in ['Newsday', 'USA Today', 'BEQ']:
+        if rec['name'] in ['Newsday', 'USA Today', 'BEQ', 'New York Times']:
             rec['title'] = titlecase(rec.get('title', ''))
 
         if any(site.get(tag) for tag in ['Bold', 'Normal']):
