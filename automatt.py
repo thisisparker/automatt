@@ -181,7 +181,10 @@ def handle_page(link):
 
     while possible_puzfiles and not filename:
         url = possible_puzfiles.pop(0)
-        filename = handle_direct_download(url).get('puzfile', '')
+        try:
+            filename = handle_direct_download(url).get('puzfile', '')
+        except:
+            pass
 
     if not filename:
         print('attempting xword-dl download of', link)
