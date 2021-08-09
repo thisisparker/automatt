@@ -71,11 +71,9 @@ def create_html_list(records):
 
         if rec.get('puzfile'):
             cls = 'fetched'
-        elif 'tktktk' in rec.get('formatted', ''):
-            cls = 'unfetched'
         else:
-            cls = 'hardcoded'
-                 
+            cls = 'unfetched'
+
         if rec['formatted']:
 
             html_list += 3 * indent + '<span class="{}">'.format(cls)
