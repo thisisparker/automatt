@@ -138,7 +138,7 @@ def get_possible_puzfiles(url):
         if 'crosshare.org/embed' in src:
             src_components = src.split('/')
             puzzle_id = src_components[src_components.index('embed') + 1]
-            possible_puzfiles.extend('https://crosshare.org/api/puz/{}'.format(puzzle_id))
+            possible_puzfiles.append('https://crosshare.org/api/puz/{}'.format(puzzle_id))
 
     return possible_puzfiles
 
