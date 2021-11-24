@@ -134,7 +134,7 @@ def get_possible_puzfiles(url):
                          possible_puzfiles if link]
 
     for iframe in soup.find_all('iframe'):
-        src = iframe.get('src')
+        src = iframe.get('src', '')
         if 'crosshare.org/embed' in src:
             src_components = src.split('/')
             puzzle_id = src_components[src_components.index('embed') + 1]
