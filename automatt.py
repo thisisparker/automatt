@@ -187,6 +187,8 @@ def handle_rss_feed(site):
     cache_buster += str(random.randint(100,999))
 
     res = requests.get(site.get('RSS') + cache_buster)
+    res.raise_for_status()
+
     f = feedparser.parse(res.content)
 
     if f.bozo:
