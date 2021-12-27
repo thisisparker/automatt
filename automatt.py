@@ -330,13 +330,13 @@ def check_and_handle(site, mailserver):
 
     if site.get('RSS'):
         try:
-            records = handle_rss_feed(site)
+            records.extend(handle_rss_feed(site))
         except Exception as e:
             problem = str(e)
 
     if site.get('Email address'):
         try:
-            records = handle_inbox_check(site, mailserver)
+            records.extend(handle_inbox_check(site, mailserver))
         except Exception as e:
             problem = str(e)
 
