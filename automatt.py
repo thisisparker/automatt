@@ -28,6 +28,7 @@ from datetime import datetime, timedelta
 from zipfile import ZipFile
 
 requests.get = functools.partial(requests.get, timeout=5)
+requests.head = functools.partial(requests.head, timeout=5)
 
 def create_html_list(records):
     indent = "    "
@@ -185,7 +186,9 @@ def handle_rss_feed(site):
     cache_buster = '&' if '?' in site.get('RSS') else '?'
     cache_buster += str(random.randint(100,999))
 
-    f = feedparser.parse(site.get('RSS') + cache_buster)
+    res = requests.get(site.get('RSS') + cache_buster)
+    f = feedparser.parse(res.content)
+
     if f.bozo:
         raise Exception('RSS feed appears to be empty or invalid.')
 
@@ -440,6 +443,7 @@ def main():
             daily_records.append({})
 
         try:
+            print('checking', site['Name'])
             records = check_and_handle(site, mailserver)
             for r in records:
                 daily_records.append(r)
