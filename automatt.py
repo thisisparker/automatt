@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import csv
+import email
+import functools
 import os
 import random
 import re
@@ -19,10 +21,13 @@ import yaml
 import xword_dl
 
 from bs4 import BeautifulSoup
+from imapclient import IMAPClient
 from titlecase import titlecase
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zipfile import ZipFile
+
+requests.get = functools.partial(requests.get, timeout=5)
 
 def create_html_list(records):
     indent = "    "
@@ -141,6 +146,35 @@ def get_possible_puzfiles(url):
             possible_puzfiles.append('https://crosshare.org/api/puz/{}'.format(puzzle_id))
 
     return possible_puzfiles
+
+
+def handle_inbox_check(site, mailserver):
+    records = []
+
+    site_from_address = site.get('Email address')
+
+    yesterday = datetime.today() - timedelta(days=1)
+
+    msg_ids = mailserver.search(['FROM', site_from_address, 'SINCE', yesterday])
+
+    for msg_id, data in mailserver.fetch(msg_ids, 'RFC822').items():
+        record = {}
+        record['name'] = site.get('Name', '')
+
+        msg = email.message_from_bytes(data[b'RFC822'])
+        record['pagetitle'] = msg.get('Subject')
+
+        for attachment in msg.get_payload():
+            filename = attachment.get_filename()
+            if filename and filename.lower().endswith('.puz'):
+                print('saving puzzle as', filename)
+                open(filename, 'wb').write(attachment.get_payload(decode=True))
+                record['puzfile'] = filename
+                break
+
+        records.append(record)
+
+    return records
 
 
 def handle_rss_feed(site):
@@ -277,7 +311,7 @@ def format_string(template, record={}):
     return template
 
 
-def check_and_handle(site):
+def check_and_handle(site, mailserver):
     to_check_dow = []
     to_check_dom = []
     records = []
@@ -297,6 +331,12 @@ def check_and_handle(site):
     if site.get('RSS'):
         try:
             records = handle_rss_feed(site)
+        except Exception as e:
+            problem = str(e)
+
+    if site.get('Email address'):
+        try:
+            records = handle_inbox_check(site, mailserver)
         except Exception as e:
             problem = str(e)
 
@@ -374,6 +414,22 @@ def main():
     sh = gc.open('Puzzle sources')
     google_sheet = sh.sheet1.get_all_records()
 
+    with open('email.yaml') as f:
+        config = yaml.safe_load(f)
+
+    from_address = config['from_address']
+    from_email = [*from_address][0]
+    password = config['password']
+    recipients = config['recipients']
+    message = config['message']
+    subject = config['subject']
+
+    imap_server = config['imap_server']
+
+    mailserver = IMAPClient(imap_server)
+    mailserver.login(from_email, password)
+    mailserver.select_folder('INBOX')
+
     os.chdir(datestring)
 
     daily_records = []
@@ -384,7 +440,7 @@ def main():
             daily_records.append({})
 
         try:
-            records = check_and_handle(site)
+            records = check_and_handle(site, mailserver)
             for r in records:
                 daily_records.append(r)
         except Exception as e:
@@ -426,15 +482,6 @@ def main():
         for f in os.listdir(datestring):
             zipf.write(datestring + '/' + f, f)
     
-    with open('email.yaml') as f:
-        config = yaml.safe_load(f)
-
-    from_address = config['from_address']
-    password = config['password']
-    recipients = config['recipients']
-    message = config['message']
-    subject = config['subject']
-
     subject = datetime.today().strftime(subject)
     message = message.format(
                 entrycount=len([e for e in daily_records if e]),
