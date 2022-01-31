@@ -27,8 +27,8 @@ from titlecase import titlecase
 from datetime import datetime, timedelta
 from zipfile import ZipFile
 
-requests.get = functools.partial(requests.get, timeout=5)
-requests.head = functools.partial(requests.head, timeout=5)
+requests.get = functools.partial(requests.get, headers={'User-Agent':'Automatt'}, timeout=5)
+requests.head = functools.partial(requests.head, headers={'User-Agent':'Automatt'}, timeout=5)
 
 def create_html_list(records):
     indent = "    "
