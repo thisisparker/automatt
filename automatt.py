@@ -441,6 +441,7 @@ def main():
     possible_problems = []
 
     for site in google_sheet:
+        records = []
         if not any(site[key] for key in site.keys()):
             daily_records.append({})
 
