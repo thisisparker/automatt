@@ -301,8 +301,14 @@ def format_string(template, record={}):
         '%puztitle': record.get('title') or 'tktktk',
         '%blank': ''
         }
+
+    supported_date_tokens = ['d','-d','m','-m','y','Y','B']
  
-    for t in ['%d', '%-d', '%m', '%-m', '%y', '%Y', '%B']:
+    for t in ['%yest' + dt for dt in supported_date_tokens]:
+        yesterday = datetime.today() - timedelta(1)
+        tokens[t] = yesterday.strftime(t.replace('yest',''))
+
+    for t in ['%' + dt for dt in supported_date_tokens]:
         tokens[t] = datetime.today().strftime(t)
 
     for token in tokens:
