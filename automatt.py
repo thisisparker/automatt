@@ -260,19 +260,14 @@ def handle_direct_download(link):
     filename = ''
 
     headers = {'User-Agent': 'Automatt'}
-    cookies = {}
 
-    if 'nytimes.com' in link:
-        with open('../nyt.txt', 'r') as f:
-            cookies = {'NYT-S': f.read()}
-        filename = datetime.today().strftime('nyt%y%m%d.puz')
-    elif 'drive.google.com/file' in link:
+    if 'drive.google.com/file' in link:
         google_id = link.split('/')[5]
         link = 'https://drive.google.com/uc?export=download&id=' + google_id
     elif 'dropbox.com' in link:
         link = link.split('?')[0] + '?dl=1'
     
-    res = requests.get(link, headers=headers, cookies=cookies)
+    res = requests.get(link, headers=headers)
     res.raise_for_status() 
 
     if not filename and link.split('?')[0].endswith('.puz'):
