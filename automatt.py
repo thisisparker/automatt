@@ -286,7 +286,7 @@ def handle_direct_download(link):
 
             record['puzfile'] = filename
         except:
-            print('Apparently malformed puzzle file at', link)
+            raise Exception('Apparently malformed puzzle file at', link)
 
     return record
 
@@ -348,25 +348,23 @@ def check_and_handle(site, mailserver):
 
     if not records and (dow in to_check_dow or dom in to_check_dom):
         record = {}
-        if 'xword-dl' in site.get('Tech'):
-            try:
+        try:
+            if 'xword-dl' in site.get('Tech'):
                 record = handle_xword_download(site)
-            except Exception as e:
-                problem = str(e)
-        elif 'direct' in site.get('Tech'):
-            try:
+
+            elif 'direct' in site.get('Tech'):
                 link = format_string(site.get('Direct Link', ''))
                 record = handle_direct_download(link)
-            except Exception as e:
-                problem = str(e)
-        elif 'page' in site.get('Tech'):
-            try:
+
+            elif 'page' in site.get('Tech'):
                 link = format_string(site.get('Direct Link')) or site.get('Homepage')
                 filename = handle_page(link)
                 if filename:
                     record = {'puzfile':filename}
-            except Exception as e:
-                problem = str(e)
+
+        except Exception as e:
+            record['problem'] = str(e)
+
         records.append(record)
 
     for rec in records:
@@ -374,9 +372,6 @@ def check_and_handle(site, mailserver):
         rec['homepage'] = site.get('Homepage', '')
         rec['link'] = rec.get('link', site.get('Direct Link', ''))
         
-        if problem:
-            rec['problem'] = problem
-
         rec['link'] = format_string(rec['link'], rec)
 
         if rec.get('puzfile'):
@@ -452,7 +447,8 @@ def main():
             for r in records:
                 daily_records.append(r)
         except Exception as e:
-            possible_problems.append((site['Name'], e))
+            print('issue encountered:', str(e))
+            possible_problems.append((site['Name'], str(e)))
 
         if (any('%homepage' in site.get(f) for f in ['Bold', 'Normal','Italic'])
                 and not site.get('Homepage')):
