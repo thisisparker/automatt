@@ -17,6 +17,7 @@ import puz
 import requests
 import yagmail
 import yaml
+import xmltodict
 
 import xword_dl
 
@@ -25,10 +26,10 @@ from imapclient import IMAPClient
 from titlecase import titlecase
 
 from datetime import datetime, timedelta
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile
 
-requests.get = functools.partial(requests.get, headers={'User-Agent':'Automatt'}, timeout=5)
-requests.head = functools.partial(requests.head, headers={'User-Agent':'Automatt'}, timeout=5)
+requests.get = functools.partial(requests.get, headers={'User-Agent':'Automatt'}, timeout=10)
+requests.head = functools.partial(requests.head, headers={'User-Agent':'Automatt'}, timeout=10)
 
 def create_html_list(records):
     indent = "    "
@@ -338,13 +339,13 @@ def check_and_handle(site, mailserver):
         try:
             records.extend(handle_rss_feed(site))
         except Exception as e:
-            problem = str(e)
+            problem += str(e) + '\n'
 
     if site.get('Email address'):
         try:
             records.extend(handle_inbox_check(site, mailserver))
         except Exception as e:
-            problem = str(e)
+            problem += str(e) + '\n'
 
     if not records and (dow in to_check_dow or dom in to_check_dom):
         record = {}
@@ -363,9 +364,12 @@ def check_and_handle(site, mailserver):
                     record = {'puzfile':filename}
 
         except Exception as e:
-            record['problem'] = str(e)
+            problem += str(e) + '\n'
 
         records.append(record)
+
+    if problem and not records:
+        records = [{'problem':problem}]
 
     for rec in records:
         rec['name'] = rec.get('name', site.get('Name'))
@@ -402,6 +406,8 @@ def check_and_handle(site, mailserver):
 
         rec['template'] = template
 
+        rec['problem'] = problem
+
     return records
 
 
@@ -437,15 +443,12 @@ def main():
     possible_problems = []
 
     for site in google_sheet:
-        records = []
         if not any(site[key] for key in site.keys()):
             daily_records.append({})
 
         try:
             print('checking', site['Name'])
-            records = check_and_handle(site, mailserver)
-            for r in records:
-                daily_records.append(r)
+            daily_records.extend(check_and_handle(site, mailserver))
         except Exception as e:
             print('issue encountered:', str(e))
             possible_problems.append((site['Name'], str(e)))
@@ -455,8 +458,8 @@ def main():
             possible_problems.append((site['Name'],
                 'No homepage specified: link likely broken'))
 
-        possible_problems.extend([(rec.get('name'), rec.get('problem')) for
-            rec in records if rec.get('problem')])
+    possible_problems.extend([(rec.get('name'), rec.get('problem')) for
+        rec in daily_records if rec.get('problem')])
      
     with open('index.html', 'w') as f:
         html_doc = create_html_list(daily_records)
@@ -514,7 +517,7 @@ def main():
         message += textwrap.dedent("""\n
         The following sites may have had issues:\n""")
         for p in possible_problems:
-            message += "- " + p[0] + ": " + str(p[1]) + "\n"
+            message += "- " + p[0] + ": " + str(p[1]).strip() + '\n'
 
     if '-d' not in sys.argv:
         yag = yagmail.SMTP(from_address, password)
