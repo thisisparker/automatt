@@ -137,6 +137,11 @@ def get_possible_puzfiles(url):
                           or a.get_text().lower() == 'puz')
                          and 'litsoft.com' not in a.get('href')]
 
+    possible_puzfiles.extend([a.get('href','') for a in soup.find_all('a')
+                                if a.get('href','') and
+                                ('.jpz' in a.get('href','').lower()
+                                    or 'jpz' in a.get_text().lower())])
+
     possible_puzfiles = [urllib.parse.urljoin(url, link) for link in
                          possible_puzfiles if link]
 
@@ -145,7 +150,7 @@ def get_possible_puzfiles(url):
         if 'crosshare.org/embed' in src:
             src_components = src.split('/')
             puzzle_id = src_components[src_components.index('embed') + 1]
-            possible_puzfiles.append('https://crosshare.org/api/puz/{}'.format(puzzle_id))
+            possible_puzfiles.insert(0, 'https://crosshare.org/api/puz/{}'.format(puzzle_id))
 
     return possible_puzfiles
 
@@ -168,7 +173,7 @@ def handle_inbox_check(site, mailserver):
 
         for attachment in msg.get_payload():
             filename = attachment.get_filename()
-            if filename and filename.lower().endswith('.puz'):
+            if filename and (filename.lower().endswith('.puz') or filename.lower().endswith('.jpz')):
                 print('saving puzzle as', filename)
                 open(filename, 'wb').write(attachment.get_payload(decode=True))
                 record['puzfile'] = filename
@@ -271,10 +276,10 @@ def handle_direct_download(link):
     res = requests.get(link, headers=headers)
     res.raise_for_status() 
 
-    if not filename and link.split('?')[0].endswith('.puz'):
+    if link.split('?')[0].endswith('.puz') or link.split('?')[0].endswith('.jpz'):
         filename = link.split('/')[-1].split('?')[0]
         filename = urllib.parse.unquote(filename)
-    elif not filename and res.headers.get('Content-Disposition', ''):
+    elif res.headers.get('Content-Disposition', ''):
         cd = res.headers.get('Content-Disposition')
         filename = re.findall('filename=(.+)', 
                               cd)[0].split(';')[0].strip('"')
@@ -288,6 +293,8 @@ def handle_direct_download(link):
             record['puzfile'] = filename
         except:
             raise Exception('Apparently malformed puzzle file at', link)
+    elif filename.endswith('.jpz'):
+        record['puzfile'] = filename
 
     return record
 
@@ -378,10 +385,27 @@ def check_and_handle(site, mailserver):
         
         rec['link'] = format_string(rec['link'], rec)
 
-        if rec.get('puzfile'):
+        if rec.get('puzfile') and rec.get('puzfile').endswith('.puz'):
             p = puz.read(rec.get('puzfile'))
             rec['author'] = p.author
             rec['title'] = p.title or rec.get('title', '')
+
+        elif rec.get('puzfile') and rec.get('puzfile').endswith('.jpz'):
+            try:
+                if is_zipfile(rec.get('puzfile')):
+                    with ZipFile(rec.get('puzfile')) as zf:
+                        with zf.open(zf.namelist()[0]) as x:
+                            jpz_info = xmltodict.parse(x)
+                else:
+                    with open(rec.get('puzfile'), 'rb') as f:
+                        jpz_info = xmltodict.parse(f)
+
+                metadata = jpz_info['crossword-compiler-applet']['rectangular-puzzle']['metadata']
+                rec['author'] = metadata['creator']
+                rec['title'] = metadata['title']
+
+            except Exception as e:
+                problem += 'JPZ parsing issue: ' + str(e) + '\n'
 
         if rec.get('author'):
             rec['author'] = rec['author'].split('/')[0]
