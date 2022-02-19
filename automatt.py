@@ -130,17 +130,13 @@ def get_possible_puzfiles(url):
         
     possible_puzfiles = [a.get('href', '') for a in soup.find_all('a') 
                          if a.get('href','') and
-                         ('.puz' in a.get('href', '').lower() 
+                         ('.puz' in a.get('href', '').lower()
+                          or '.jpz' in a.get('href','').lower()
                           or any(s in a.get_text().lower() for 
                                  s in ['.puz', 'acrosslite', 'across lite', 
-                                       'puz file'])
+                                       'puz file', 'jpz'])
                           or a.get_text().lower() == 'puz')
                          and 'litsoft.com' not in a.get('href')]
-
-    possible_puzfiles.extend([a.get('href','') for a in soup.find_all('a')
-                                if a.get('href','') and
-                                ('.jpz' in a.get('href','').lower()
-                                    or 'jpz' in a.get_text().lower())])
 
     possible_puzfiles = [urllib.parse.urljoin(url, link) for link in
                          possible_puzfiles if link]
@@ -294,6 +290,8 @@ def handle_direct_download(link):
         except:
             raise Exception('Apparently malformed puzzle file at', link)
     elif filename.endswith('.jpz'):
+        with open(filename, 'wb') as f:
+            f.write(res.content)
         record['puzfile'] = filename
 
     return record
