@@ -11,6 +11,7 @@ import textwrap
 import time
 import urllib
 
+import discord
 import feedparser
 import gspread
 import puz
@@ -150,6 +151,23 @@ def get_possible_puzfiles(url):
 
     return possible_puzfiles
 
+def send_to_discord(msg, attachment, token, channel_id):
+    intents = discord.Intents.default()
+    client = discord.Client(intents=intents)
+
+    print('sending to discord')
+
+    @client.event
+    async def on_ready():
+        channel = client.get_channel(channel_id)
+        if attachment:
+            filename = discord.File(attachment)
+            await channel.send(msg, file=filename)
+        else:
+            await channel.send(msg)
+        await client.close()
+
+    client.run(token)
 
 def handle_inbox_check(site, mailserver):
     records = []
@@ -546,6 +564,8 @@ def main():
         yag.send(to=recipients,
                  subject=subject,
                  contents=[message, datestring + '.zip'])
+        send_to_discord(message, datestring + '.zip',
+                        config['discord_token'], config['discord_channel_id'])
     else:
         print(message)
  
