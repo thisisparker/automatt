@@ -424,6 +424,7 @@ def check_and_handle(site, mailserver):
                 problem += 'JPZ parsing issue: ' + str(e) + '\n'
 
         if rec.get('author'):
+            rec['author'] = BeautifulSoup(rec['author']).get_text()
             rec['author'] = rec['author'].split('/')[0]
             rec['author'] = rec['author'].split(', edited')[0]
             rec['author'] = rec.get('author', '').strip()
