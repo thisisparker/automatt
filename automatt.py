@@ -416,7 +416,8 @@ def check_and_handle(site, mailserver):
                     with open(rec.get('puzfile'), 'rb') as f:
                         jpz_info = xmltodict.parse(f)
 
-                metadata = jpz_info['crossword-compiler-applet']['rectangular-puzzle']['metadata']
+                main_data = jpz_info.get('crossword-compiler') or jpz_info.get('crossword-compiler-applet')
+                metadata = main_data['rectangular-puzzle']['metadata']
                 rec['author'] = metadata['creator']
                 rec['title'] = metadata['title']
 
