@@ -491,6 +491,7 @@ def main():
         try:
             print('checking', site['Name'])
             daily_records.extend(check_and_handle(site, mailserver))
+            time.sleep(1)
         except Exception as e:
             print('issue encountered:', str(e))
             possible_problems.append((site['Name'], str(e)))
