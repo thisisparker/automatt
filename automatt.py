@@ -169,6 +169,20 @@ def send_to_discord(msg, attachment, token, channel_id):
 
     client.run(token)
 
+def send_to_wordpress(draft_post, tags, token):
+    wp_api_url = 'https://public-api.wordpress.com/rest/v1.1/sites/dailycrosswordlinks.com/posts/new?context=edit'
+    post_data = {
+        'title': datetime.today().strftime('%A, %B %-d, %Y'),
+        'content': draft_post,
+        'tags': ','.join(tags),
+        'status': 'draft',
+        }
+    wp_headers = {
+        'Authorization': 'Bearer ' + token,
+    }
+
+    requests.post(wp_api_url, data=post_data, headers=wp_headers)
+
 def handle_inbox_check(site, mailserver):
     records = []
 
@@ -440,9 +454,7 @@ def check_and_handle(site, mailserver):
             template = ' '.join(['<strong>' + site.get('Bold') + '</strong>',
                                  site.get('Normal')])
         else:
-            template = textwrap.dedent("""\
-                <strong><a href="%link">%sitename</a>: %puztitle</strong> 
-                by %author.""")
+            template = '<strong><a href="%link">%sitename</a>: %puztitle</strong> by %author.'
 
         template += ' <em>' + (site.get('Italic') or 'tktktk') + '</em>'
 
@@ -569,6 +581,10 @@ def main():
                  contents=[message, datestring + '.zip'])
         send_to_discord(message, datestring + '.zip',
                         config['discord_token'], config['discord_channel_id'])
+        draft_post = html_doc.split('</h1>')[1]
+        wp_tags = [rec.get('author') for rec in daily_records
+                        if rec.get('author')]
+        send_to_wordpress(draft_post, wp_tags, config['wordpress_token'])
     else:
         print(message)
  
@@ -578,4 +594,4 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         with open('automatt_error.txt', 'a') as f:
-            f.write(str(e))
+            f.write(repr(e))
