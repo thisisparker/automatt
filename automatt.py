@@ -298,8 +298,8 @@ def handle_direct_download(link):
     if 'drive.google.com/file' in link:
         google_id = link.split('/')[5]
         link = 'https://drive.google.com/uc?export=download&id=' + google_id
-    elif 'dropbox.com' in link:
-        link = link.split('?')[0] + '?dl=1'
+    elif 'dropbox.com' in link and not link.endswith('dl=1'):
+        link += '&dl=1' if '?' in link else '?dl=1'
     
     res = requests.get(link, headers=headers)
     res.raise_for_status() 
