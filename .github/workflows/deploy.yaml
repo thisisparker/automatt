@@ -1,0 +1,25 @@
+name: Deploy to production
+run-name: Deploy to production on new pushes
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Tailscale
+        id: tailscale
+        uses: tailscale/github-action@main
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:github
+      - name: SSH and pull latest
+        id: pull-to-droplet
+        run: |
+          tailscale ssh parker@droplet "
+            cd ~/automatt
+            git pull https://${{ secrets.GITHUB_TOKEN }}@github.com/thisisparker/automatt
+          "
