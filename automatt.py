@@ -575,16 +575,31 @@ def main():
             message += "- " + p[0] + ": " + str(p[1]).strip() + '\n'
 
     if '-d' not in sys.argv:
-        yag = yagmail.SMTP(from_address, password)
-        yag.send(to=recipients,
-                 subject=subject,
-                 contents=[message, datestring + '.zip'])
-        send_to_discord(message, datestring + '.zip',
-                        config['discord_token'], config['discord_channel_id'])
-        draft_post = html_doc.split('</h1>')[1]
-        wp_tags = [rec.get('author') for rec in daily_records
-                        if rec.get('author')]
-        send_to_wordpress(draft_post, wp_tags, config['wordpress_token'])
+        try:
+            yag = yagmail.SMTP(from_address, password)
+            yag.send(to=recipients,
+                     subject=subject,
+                     contents=[message, datestring + '.zip'])
+        except Exception as err:
+            print('Could not send email. Skipping.')
+            with open('automatt_error.txt', 'a') as f:
+                f.write('Email issue: ' + repr(e) + '\n')
+        try:
+            send_to_discord(message, datestring + '.zip',
+                            config['discord_token'], config['discord_channel_id'])
+        except Exception as err:
+            print('Could not post to Discord. Skipping.')
+            with open('automat_error.txt', 'a') as f:
+                f.write('Discord issue: ' + repr(e) + '\n')
+        try:
+            draft_post = html_doc.split('</h1>')[1]
+            wp_tags = [rec.get('author') for rec in daily_records
+                            if rec.get('author')]
+            send_to_wordpress(draft_post, wp_tags, config['wordpress_token'])
+        except Exception as err:
+            print('Could not send email. Skipping.')
+            with open('automatt_error.txt', 'a') as f:
+                f.write('Wordpress issue: ' + repr(e) + '\n')
     else:
         print(message)
  
