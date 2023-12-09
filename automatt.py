@@ -24,9 +24,11 @@ import xword_dl
 
 from bs4 import BeautifulSoup
 from imapclient import IMAPClient
+from requests.adapters import HTTPAdapter
 from titlecase import titlecase
 
 from datetime import datetime, timedelta
+from urllib3.util import Retry
 from zipfile import ZipFile, is_zipfile
 
 requests.get = functools.partial(requests.get, headers={'User-Agent':'Automatt'}, timeout=10)
@@ -225,8 +227,13 @@ def handle_rss_feed(site):
     cache_buster = '&' if '?' in site.get('RSS') else '?'
     cache_buster += str(random.randint(100,999))
 
-    res = requests.get(site.get('RSS') + cache_buster)
-    res.raise_for_status()
+    retries = Retry(total=10, backoff_factor=0.2)
+
+    with requests.Session() as s:
+        s.mount('http', HTTPAdapter(max_retries=retries))
+        s.headers.update({'User-Agent': 'Automatt / Daily Crossword Links bot'})
+        res = s.get(site.get('RSS') + cache_buster)
+        res.raise_for_status()
 
     f = feedparser.parse(res.content)
 
