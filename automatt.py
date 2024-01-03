@@ -534,10 +534,10 @@ def main():
             html_doc += create_html_postscript(graf)
         html_doc += create_html_blocklist(
                 sh.worksheet('Other American').get_all_records(),
-                title='Other American-style crosswords:')
+                title='Other American-style links:')
         html_doc += create_html_blocklist(
                 sh.worksheet('Other Cryptic/Variety').get_all_records(),
-                title='Other Cryptic/Variety crosswords:')
+                title='Other Cryptic/Variety links:')
         html_doc += """
         </body>
     </html>"""
