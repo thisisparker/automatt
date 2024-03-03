@@ -347,8 +347,8 @@ def format_string(template, record={}):
         '%homepage': record.get('homepage') or '',
         '%sitename': record.get('name') or '',
         '%pagetitle': record.get('pagetitle') or '%puztitle',
-        '%author': record.get('author') or 'tktktk',
-        '%puztitle': record.get('title') or 'tktktk',
+        '%author': record.get('author') or record.get('expected_author') or 'tktktk',
+        '%puztitle': record.get('title') or record.get('expected_title') or 'tktktk',
         '%blank': ''
         }
 
@@ -424,6 +424,9 @@ def check_and_handle(site, mailserver):
         rec['name'] = rec.get('name', site.get('Name'))
         rec['homepage'] = site.get('Homepage', '')
         rec['link'] = rec.get('link', site.get('Direct Link', ''))
+
+        rec['expected_author'] = site.get('Expected author','')
+        rec['expected_title'] = site.get('Expected title', '')
         
         rec['link'] = format_string(rec['link'], rec)
 
@@ -544,8 +547,8 @@ def main():
         f.write(html_doc)
 
     with open(datestring + '.csv', 'w') as f:
-        fields = ['name', 'title', 'author', 'link', 'puzfile', 
-                  'formatted', 'problem']
+        fields = ['name', 'title', 'author', 'expected_title', 'expected_author',
+                  'link', 'puzfile', 'formatted', 'problem']
         writer = csv.DictWriter(f, fields, extrasaction='ignore')
         writer.writeheader()
         for row in daily_records:
