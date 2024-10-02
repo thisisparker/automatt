@@ -564,7 +564,11 @@ def main():
                 entrycount=len([e for e in daily_records if e]),
                 puzcount=len([e for e in daily_records if e.get('puzfile')]))
 
-    reminders = sh.worksheet('Reminder').get_all_records()
+    try:
+        reminders = sh.worksheet('Reminder').get_all_records()
+    except Exception as e:
+        reminders = ''
+        possible_problems.append('Fetching reminders failed. Check the sources doc for today\'s reminders.')
     to_remind = ''
 
     for r in reminders:
