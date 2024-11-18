@@ -242,7 +242,9 @@ def handle_rss_feed(site):
 
     new_posts = [entry for entry in f.entries 
                  if entry and time.mktime(time.gmtime()) - 
-                 time.mktime(entry.get('published_parsed')) <= (86400 * 1 + 120)]
+                 time.mktime(entry.get('published_parsed',
+                                       entry.get('updated_parsed')))
+                 <= (86400 * 1 + 120)]
 
     for entry in new_posts:
         record = {}
