@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import asyncio
+import os
+import pathlib
 import shlex
 import subprocess
 
@@ -9,7 +11,9 @@ import yaml
 
 from discord.ext import commands
 
-with open('../email.yaml') as f:
+CONFIG_PATH = os.getenv("CONFIG_PATH") or pathlib.Path(__file__).parent.parent / "email.yaml"
+
+with open(CONFIG_PATH) as f:
     config = yaml.safe_load(f)
 
 TOKEN = config['discord_token']
