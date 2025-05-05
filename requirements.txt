@@ -4,7 +4,7 @@ feedparser==6.0.2
 gspread==3.6.0
 imapclient==2.2.0
 puzpy==0.2.5
-PyYAML==5.4.1
+PyYAML==6.0.2
 requests==2.25.1
 titlecase==2.0.0         
 xword-dl>=2021.2.5
