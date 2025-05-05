@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import shlex
 import subprocess
 
@@ -26,18 +27,20 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-
-
 @bot.tree.command(name="rerun",
                   description="Run the daily check again",
                   guild=guild)
 async def rerun(interaction):
     await interaction.response.send_message("oops! re-running now. that usually takes about 10 minutes. go grab a coffee and I'll be here when you get back. ☕")
 
-    result = subprocess.run(command, capture_output=True, text=True)
+    proc = await asyncio.create_subprocess_exec(*command,
+                                                stderr=asyncio.subprocess.PIPE)
+    stdout, stderr = await proc.communicate()
+    errors = stderr.decode().strip()
+
     response = "alright, i tried!"
-    if result.stderr:
-        response += " heads up, I did hit this error: {result.stderr}" 
+    if errors:
+        response += f" heads up, I did hit this error: {errors}"
     await interaction.followup.send(response)
 
 @bot.command()
@@ -51,6 +54,6 @@ async def sync(ctx):
 async def list_commands(ctx):
     cmds = await bot.tree.fetch_commands(guild=guild)
     for cmd in cmds:
-        print(f"/{cmd.name} - {cmd.description}")
+        await ctx.send(f"/{cmd.name} - {cmd.description}")
 
 bot.run(TOKEN)
