@@ -1,5 +1,6 @@
 beautifulsoup4==4.9.3
 bs4==0.0.1
+discord.py==2.5.2
 feedparser==6.0.2
 gspread==3.6.0
 imapclient==2.2.0
