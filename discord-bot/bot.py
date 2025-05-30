@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import asyncio
+import io
 import os
 import pathlib
 import shlex
 import subprocess
 
 import discord
+import xword_dl
 import yaml
 
 from discord.ext import commands
@@ -46,6 +48,23 @@ async def rerun(interaction):
     if errors:
         response += f" heads up, I did hit this error: {errors}"
     await interaction.followup.send(response)
+
+@bot.tree.command(name="scrape",
+                  description="try to scrape a given URL with xword-dl",
+                  guild=guild)
+async def scrape(interaction, url: str):
+    if not url:
+        await interaction.response.send_message("No URL provided")
+        return
+
+    try:
+        puzzle, filename = xword_dl.by_url(url)
+    except Exception as e:
+        await interaction.response.send_message(f"Unable to scrape {url}, sorry! Error: {e}")
+        return
+
+    file = discord.File(io.BytesIO(puzzle.tobytes()), filename=filename)
+    await interaction.response.send_message(content=f"Here's the puzzle from {url}", file=file)
 
 @bot.command()
 @commands.is_owner()
