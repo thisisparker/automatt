@@ -183,6 +183,7 @@ def send_to_wordpress(draft_post, tags, token):
         'content': draft_post,
         'tags': ','.join(tags),
         'status': 'draft',
+        'author': 0,
         }
     wp_headers = {
         'Authorization': 'Bearer ' + token,
