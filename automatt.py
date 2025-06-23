@@ -181,7 +181,7 @@ def send_to_wordpress(draft_post, tags, token):
     post_data = {
         'title': datetime.today().strftime('%A, %B %-d, %Y'),
         'content': draft_post,
-        'tags': ','.join(tags),
+        #'tags': ','.join(tags),
         'status': 'draft',
         'author': 0,
         }
@@ -624,7 +624,7 @@ def main():
                 f.write('Wordpress issue: ' + repr(e) + '\n')
     else:
         print(message)
- 
+
 
 if __name__ == '__main__':
     try:
