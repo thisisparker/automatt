@@ -1,0 +1,23 @@
+[project]
+name = "automatt"
+version = "0.1.0"
+description = "Script preparing drafts of the Daily Crossword Links newsletter"
+readme = "README.md"
+requires-python = "~=3.12.0"
+dependencies = [
+    "bs4",
+    "discord-py==2.5.2",
+    "feedparser==6.0.2",
+    "gspread==3.6.0",
+    "imapclient==2.2.0",
+    "puzpy",
+    "pyyaml==6.0.2",
+    "requests",
+    "titlecase==2.0.0",
+    "xmltodict",
+    "xword-dl",
+    "yagmail==0.14.245",
+]
+
+[tool.uv.sources]
+xword-dl = { git = "https://github.com/thisisparker/xword-dl" }
